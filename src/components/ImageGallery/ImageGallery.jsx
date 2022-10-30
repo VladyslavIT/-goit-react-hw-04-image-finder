@@ -8,7 +8,7 @@ import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Loader } from 'components/Loader/Loader';
 import { Button } from 'components/Button/Button';
 import { ImageGalley } from './ImageGallary.styled';
-import { fetchImages } from 'components/Api';
+import { fetchImages } from 'Api/Api';
 
 const ImageGallery = ({ nameGallery }) => {
   const [image, setImage] = useState([]);
