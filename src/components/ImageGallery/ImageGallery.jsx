@@ -1,5 +1,5 @@
 import React from 'react';
-import axios from 'axios';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { ToastContainer } from 'react-toastify';
 import { toast } from 'react-toastify';
@@ -8,78 +8,53 @@ import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Loader } from 'components/Loader/Loader';
 import { Button } from 'components/Button/Button';
 import { ImageGalley } from './ImageGallary.styled';
+import { fetchImages } from 'components/Api';
 
-class ImageGallery extends React.Component {
-  state = {
-    image: [],
-    loading: false,
-    error: null,
-    status: 'idle',
-    page: 1,
-    total: null
-  };
+const ImageGallery = ({ nameGallery }) => {
+  const [image, setImage] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [status, setStatus] = useState('idle');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(null);
 
-  BASE_URL = 'https://pixabay.com/api/';
-  KEY = '29531020-3b97d8056313c52b7859c1bca';
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevProps.nameGallery !== this.props.nameGallery ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ loading: true });
-      try {
-        const response = await axios.get(this.BASE_URL, {
-          params: {
-            key: this.KEY,
-            q: this.props.nameGallery,
-            image_type: `photo`,
-            orientation: `horizontal`,
-            per_page: 12,
-            page: this.state.page,
-          },
-        });
-        if (response.data.hits.length === 0) {
-          toast.error('Nothing as requested, please try another word');
-          this.setState({
-            image: [],
-            loading: false,
-            status: 'pending',
-          });
-          return;
-        }
-        if (prevProps.nameGallery !== this.props.nameGallery) {
-          this.setState({
-            image: [...response.data.hits],
-            loading: false,
-            status: 'resolve',
-            page: 1,
-            total: response.data.total
-          });
-          toast.success('Successful search');
-        }
-        if (prevState.page !== this.state.page) {
-          this.setState(prevState => ({
-            image: [...prevState.image, ...response.data.hits],
-            loading: false,
-            status: 'resolve',
-          }));
-        }
-      } catch (error) {
-        this.setState({ status: 'rejected' });
-        toast.error('Oops, something went wrong');
-      }
+  useEffect(() => {
+    if (!nameGallery) {
+      return;
     }
-  }
+    setLoading(true);
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
-  };
+    fetchImages(nameGallery, page).then(response => {
+      if (response.hits.length === 0) {
+        toast.error('Nothing as requested, please try another word');
+        setImage([]);
+        setLoading(false);
+        setStatus('pending');
+        return;
+      }
 
-  render() {
-    const { image, status, loading, error, total} = this.state;
+      setImage([...response.hits]);
+      setLoading(false);
+      setStatus('resolve');
+      setPage(1);
+      setTotal(response.total);
+      toast.success('Successful search');
+    });
+  }, [nameGallery]);
+
+  useEffect(() => {
+    if (nameGallery === '') {
+      return;
+    }
+    fetchImages(nameGallery, page).then(response => {
+      setImage(prevImage => [...prevImage, ...response.hits]);
+      setLoading(false);
+      setStatus('resolve');
+    })}, [page]);
+
+    const loadMore = () => {
+      setPage(prevPage => prevPage + 1);
+    };
 
     return (
       <>
@@ -98,15 +73,18 @@ class ImageGallery extends React.Component {
             <ToastContainer />
           </ImageGalley>
         )}
-        {image.length > 0 && image.length !== total ? <Button onClick={this.loadMore} /> : <></> }
+        {image.length > 0 && image.length !== total ? (
+          <Button onClick={loadMore} />
+        ) : (
+          <></>
+        )}
       </>
     );
-  }
 }
-
+  
 ImageGallery.propTypes = {
-  nameGallery: PropTypes.string.isRequired,
-};
+  nameGallery: PropTypes.string.isRequired
+}
 
 export { ImageGallery };
 
