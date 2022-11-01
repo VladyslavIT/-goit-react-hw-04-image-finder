@@ -19,10 +19,19 @@ const ImageGallery = ({ nameGallery }) => {
   const [total, setTotal] = useState(null);
 
   useEffect(() => {
-    if (!nameGallery) {
+    if (!nameGallery || nameGallery === '') {
       return;
     }
     setLoading(true);
+
+    if (page > 1) {
+      fetchImages(nameGallery, page).then(response => {
+        setImage(prevImage => [...prevImage, ...response.hits]);
+        setLoading(false);
+        setStatus('resolve');
+      });
+      return;
+    }
 
     fetchImages(nameGallery, page).then(response => {
       if (response.hits.length === 0) {
@@ -40,52 +49,40 @@ const ImageGallery = ({ nameGallery }) => {
       setTotal(response.total);
       toast.success('Successful search');
     });
-  }, [nameGallery]);
+  }, [nameGallery, page]);
 
-  useEffect(() => {
-    if (nameGallery === '') {
-      return;
-    }
-    fetchImages(nameGallery, page).then(response => {
-      setImage(prevImage => [...prevImage, ...response.hits]);
-      setLoading(false);
-      setStatus('resolve');
-    })}, [page]);
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
+  };
 
-    const loadMore = () => {
-      setPage(prevPage => prevPage + 1);
-    };
+  return (
+    <>
+      {status === 'rejected' && <p> {error}</p>}
+      {loading && <Loader />}
+      {status === 'resolve' && (
+        <ImageGalley>
+          {image.map(({ id, webformatURL, largeImageURL, tags }) => (
+            <ImageGalleryItem
+              key={id}
+              webformatURL={webformatURL}
+              largeImageURL={largeImageURL}
+              tags={tags}
+            />
+          ))}
+          <ToastContainer />
+        </ImageGalley>
+      )}
+      {image.length > 0 && image.length !== total ? (
+        <Button onClick={loadMore} />
+      ) : (
+        <></>
+      )}
+    </>
+  );
+};
 
-    return (
-      <>
-        {status === 'rejected' && <p> {error}</p>}
-        {loading && <Loader />}
-        {status === 'resolve' && (
-          <ImageGalley>
-            {image.map(({ id, webformatURL, largeImageURL, tags }) => (
-              <ImageGalleryItem
-                key={id}
-                webformatURL={webformatURL}
-                largeImageURL={largeImageURL}
-                tags={tags}
-              />
-            ))}
-            <ToastContainer />
-          </ImageGalley>
-        )}
-        {image.length > 0 && image.length !== total ? (
-          <Button onClick={loadMore} />
-        ) : (
-          <></>
-        )}
-      </>
-    );
-}
-  
 ImageGallery.propTypes = {
-  nameGallery: PropTypes.string.isRequired
-}
+  nameGallery: PropTypes.string.isRequired,
+};
 
 export { ImageGallery };
-
-
