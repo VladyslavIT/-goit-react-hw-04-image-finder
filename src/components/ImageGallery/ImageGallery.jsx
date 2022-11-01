@@ -11,6 +11,7 @@ import { ImageGalley } from './ImageGallary.styled';
 import { fetchImages } from 'Api/Api';
 
 const ImageGallery = ({ nameGallery }) => {
+  const [nameImage, setNameImage] = useState('');
   const [image, setImage] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -24,13 +25,13 @@ const ImageGallery = ({ nameGallery }) => {
     }
     setLoading(true);
 
-    if (page > 1) {
+        if (page > 1 && nameImage === nameGallery) {
       fetchImages(nameGallery, page).then(response => {
         setImage(prevImage => [...prevImage, ...response.hits]);
         setLoading(false);
         setStatus('resolve');
       });
-      return;
+          return;
     }
 
     fetchImages(nameGallery, page).then(response => {
@@ -42,13 +43,16 @@ const ImageGallery = ({ nameGallery }) => {
         return;
       }
 
+      setNameImage(nameGallery);
       setImage([...response.hits]);
       setLoading(false);
-      setStatus('resolve');
       setPage(1);
+      setStatus('resolve');
       setTotal(response.total);
       toast.success('Successful search');
     });
+
+
   }, [nameGallery, page]);
 
   const loadMore = () => {
