@@ -11,7 +11,6 @@ import { ImageGalley } from './ImageGallary.styled';
 import { fetchImages } from 'Api/Api';
 
 const ImageGallery = ({ nameGallery }) => {
-  const [nameImage, setNameImage] = useState('');
   const [image, setImage] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -23,21 +22,17 @@ const ImageGallery = ({ nameGallery }) => {
     if (!nameGallery || nameGallery === '') {
       return;
     }
-    setLoading(true);
 
-    if (page > 1 && nameGallery !== nameImage) {
-      setPage(1);
-      return;
-    }
-
-        if (page > 1 && nameImage === nameGallery) {
+    if (page > 1 ) {
       fetchImages(nameGallery, page).then(response => {
         setImage(prevImage => [...prevImage, ...response.hits]);
         setLoading(false);
         setStatus('resolve');
       });
-          return;
+      return;
     }
+
+    setLoading(true);
 
     fetchImages(nameGallery, page).then(response => {
       if (response.hits.length === 0) {
@@ -48,7 +43,6 @@ const ImageGallery = ({ nameGallery }) => {
         return;
       }
 
-      setNameImage(nameGallery);
       setImage([...response.hits]);
       setLoading(false);
       setPage(1);
@@ -56,7 +50,7 @@ const ImageGallery = ({ nameGallery }) => {
       setTotal(response.total);
       toast.success('Successful search');
     });
-  }, [nameGallery, page,nameImage]);
+  }, [nameGallery, page]);
 
   const loadMore = () => {
     setPage(prevPage => prevPage + 1);
