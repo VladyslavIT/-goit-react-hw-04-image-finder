@@ -25,6 +25,11 @@ const ImageGallery = ({ nameGallery }) => {
     }
     setLoading(true);
 
+    if (page > 1 && nameGallery !== nameImage) {
+      setPage(1);
+      return;
+    }
+
         if (page > 1 && nameImage === nameGallery) {
       fetchImages(nameGallery, page).then(response => {
         setImage(prevImage => [...prevImage, ...response.hits]);
@@ -51,9 +56,7 @@ const ImageGallery = ({ nameGallery }) => {
       setTotal(response.total);
       toast.success('Successful search');
     });
-
-
-  }, [nameGallery, page]);
+  }, [nameGallery, page,nameImage]);
 
   const loadMore = () => {
     setPage(prevPage => prevPage + 1);
